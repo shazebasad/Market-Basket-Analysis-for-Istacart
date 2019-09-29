@@ -13,4 +13,6 @@ grocery orders from more than 200,000 Instacart users. For each user, between 4 
 
 Data Processing:
 
-The dataset is divided into six separate data files which pertain to the following information: information on the department within the store, information on the aisle within the store, information of orders that are divided into three different sets (prior, training and test), information of prior orders, information on the training set data, and information related to the products. Each data set is separately analyzed so as to ascertain whether no missing values are there. There is only one data set that has some missing valu
+The dataset is divided into six separate data files which pertain to the following information: information on the department within the store, information on the aisle within the store, information of orders that are divided into three different sets (prior, training and test), information of prior orders, information on the training set data, and information related to the products. Each data set is separately analyzed so as to ascertain whether no missing values are there. There is only one data set that has some missing values and that is the orders data set. The missing values are in the prior orders column. We will however not remove them since it will not impact our analysis.
+
+I have used the ggplot2 and arules packages in R to derive insights.
