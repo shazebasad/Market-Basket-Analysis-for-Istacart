@@ -11,6 +11,7 @@ library("dplyr")
 library("treemap")
 library("RColorBrewer")
 
+
 Aisles <- read.csv("aisles.csv")
 View(Aisles)
 head(Aisles)
@@ -52,18 +53,27 @@ Products$product_name <- Products$product_name
 Pmissing <- is.na(Products)
 table(Pmissing)
 
-ggplot(Orders,aes(x= order_hour_of_day)) +theme_bw() + geom_bar(fill = "blue") + labs(title = "Most orders with respect to Hour of Day") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
-ggplot(Orders,aes(x= order_hour_of_day)) +theme_bw() + facet_wrap(~eval_set) + geom_bar(fill = "blue") + labs(title = "Most orders with respect to Hour of Day") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
-ggplot(Orders,aes(x= order_dow)) +theme_bw() + geom_bar(fill = "purple") + labs(title = "Most orders with respect to Day of Week") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
-ggplot(Orders,aes(x= order_dow)) +theme_bw() + facet_wrap(~eval_set) + geom_bar(fill = "purple") + labs(title = "Most orders with respect to Day of Week") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
+Orders$order_dow <- recode(Orders$order_dow, 
+                        "0"="Sunday",
+                        "1"="Monday",
+                        "2"="Tuesday",
+                        "3"="Wednesday",
+                        "4"="Thursday",
+                        "5"="Friday",
+                        "6"="Saturday")
 
-ggplot(Orders,aes(x= days_since_prior_order)) +theme_bw() + geom_bar(fill = "orange") + labs(title = "Days since Customers reorder the most") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
+ggplot(Orders,aes(x= order_hour_of_day)) +theme_bw() + geom_bar(fill = "red") + geom_text(aes(label=..count..),stat="count", position=position_dodge(0.9),vjust=-0.2) + labs(title = "Most orders with respect to Hour of Day") + scale_y_continuous(name="Orders", labels = scales::comma)
+ggplot(Orders,aes(x= order_hour_of_day)) +theme_bw() + facet_wrap(~eval_set) + geom_bar(fill = "blue") + labs(title = "Most orders with respect to Hour of Day") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
+ggplot(Orders,aes(x= order_dow)) +theme_bw() + geom_bar(fill = "red") + geom_text(aes(label=..count..),stat="count", position=position_dodge(0.9),vjust=-0.2) + labs(title = "Most orders with respect to Day of Week") + scale_y_continuous(name="Orders", labels = scales::comma)
+ggplot(Orders,aes(x= order_dow)) +theme_bw() + facet_wrap(~eval_set) + geom_bar(fill = "purple") + geom_text(aes(label=..count..),stat="count", position=position_dodge(0.9),vjust=-0.2) + labs(title = "Most orders with respect to Day of Week") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
+
+ggplot(Orders,aes(x= days_since_prior_order)) +theme_bw() + geom_bar(fill = "orange") + geom_text(aes(label=..count..),stat="count", position=position_dodge(0.9),vjust=-0.2)+ labs(title = "Days since Customers reorder the most") + scale_y_continuous(name="Orders", labels = scales::comma)
 ggplot(Orders,aes(x= days_since_prior_order)) +theme_bw() + facet_wrap(~eval_set) + geom_bar(fill = "orange") + labs(title = "Most orders with respect to Hour of Day") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
 
 Training_order %>%
   group_by(order_id) %>%
   summarise(n_items = last(add_to_cart_order)) %>%
-  ggplot(aes(x=n_items))+ geom_bar(stat="count",fill="brown") + labs(title = "No of Items bought by customers")
+  ggplot(aes(x=n_items))+ geom_bar(stat="count",fill="brown") + geom_text(aes(label=..count..),stat="count", position=position_dodge(0.9),vjust=-0.2)+ labs(title = "No of Items bought by customers")
 
 Most_sold <- Training_order %>% 
   group_by(product_id) %>% 
@@ -72,7 +82,7 @@ Most_sold <- Training_order %>%
   left_join(select(Products,product_id,product_name),by="product_id") %>%
   arrange(desc(count))
 Most_sold
-  ggplot(Most_sold, aes(x = reorder(product_name, -count), y = count)) + geom_col() + theme(axis.text.x=element_text(angle=90, hjust=1)) + labs(title = "Most items Sold")
+  ggplot(Most_sold, aes(x = reorder(product_name, -count), y = count)) + geom_col() + geom_text(aes(label = count), vjust = -0.5)+ theme(axis.text.x=element_text(angle=90, hjust=1)) + labs(title = "Most Sold items")
   
 
 Training_order$reordered[Training_order$reordered==1] <- "Reordered"
@@ -81,7 +91,7 @@ Reordered <- Training_order %>%
   group_by(reordered) %>% 
   summarize(count = n())
 Reordered
-ggplot(Reordered, aes(x=reordered,y=count,fill=reordered))+ geom_bar(stat="identity") + scale_y_continuous(name="Fluorescent intensity/arbitrary units", labels = scales::comma)
+ggplot(Reordered, aes(x=reordered,y=count,fill=reordered))+ geom_bar(stat="identity") + geom_text(aes(label= count), position=position_dodge(0.9),vjust=-0.2) + scale_y_continuous(name="Orders", labels = scales::comma)
 
 Training_order$reordered[Training_order$reordered=="Reordered"] <- 1
 Training_order$reordered[Training_order$reordered=="Did not Reorder"] <- 0
@@ -94,7 +104,7 @@ Most_Reordered <-Training_order %>%
   arrange(desc(mean_reorder)) %>% 
   left_join(Products,by="product_id")
 Most_Reordered
-ggplot(Most_Reordered, aes(x = reorder(product_name, -mean_reorder), y = mean_reorder)) + geom_col() + theme(axis.text.x=element_text(angle=90, hjust=1)) + labs(title = "Most Reordered Items")
+ggplot(Most_Reordered, aes(x = reorder(product_name, -mean_reorder), y = mean_reorder*100)) + geom_col() +theme(axis.text.x=element_text(angle=90, hjust=1)) + labs(x = "product name" , y = "Average Reorder Rate",title = "Most Reordered Items")
 
 Training_order %>% 
   left_join(Orders,by="order_id") %>% 
@@ -165,6 +175,7 @@ write.csv(Rules, "./tmp/tall_transactions.csv")
 order_trans <- read.transactions(
   file = "./tmp/tall_transactions.csv",
   format = "single",
+  header = TRUE,
   sep = ",",
   cols=c("order_id","product_name"),
   rm.duplicates = T
@@ -212,9 +223,12 @@ plot(a.rules, shading="order", control=list(main = "Two-key plot",
 subrules <- subset(a.rules, lift>4)
 subrules
 
+a.rules <- apriori(order_trans, parameter = list(support=0.002, conf=0.40,maxlen=5))
 ## grouped matrix plot
 plot(a.rules, method="grouped")
 ## try: sel <- plot(rules, method="grouped", interactive=TRUE)
+
+a.rules <- apriori(order_trans, parameter = list(support=0.001, conf=0.40,maxlen=5))
 
 ## graphs only work well with very few rules
 subrules2 <- sample(a.rules, 10)
